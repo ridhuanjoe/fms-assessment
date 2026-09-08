@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BSE219 FMS Observation & Assessment</title>
+<style>
+:root{--bg:#f4f7fb;--card:#fff;--text:#172033;--muted:#687386;--border:#dbe2ea;--accent:#1f5fbf;--good:#16794a;--warn:#b66a00;--bad:#b3261e}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+header{background:#152a45;color:white;padding:22px 24px}header h1{margin:0 0 5px;font-size:24px}header p{margin:0;color:#dce7f5}
+main{max-width:1180px;margin:22px auto;padding:0 16px 50px}.grid{display:grid;grid-template-columns:1.05fr .95fr;gap:18px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;box-shadow:0 2px 10px rgba(20,40,70,.05)}
+h2{font-size:19px;margin:0 0 12px}h3{font-size:16px;margin:18px 0 8px}.muted{color:var(--muted);font-size:13px}
+video{width:100%;background:#111;border-radius:10px;min-height:260px}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+input[type=text],input[type=number],select,textarea{width:100%;padding:10px 11px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:white}
+textarea{min-height:85px;resize:vertical}label{font-size:13px;font-weight:700;display:block;margin:10px 0 5px}
+.criterion{border-top:1px solid var(--border);padding:13px 0}.criterion:first-of-type{border-top:none}.criterion-title{font-weight:700;margin-bottom:4px}
+.criterion-desc{font-size:12px;color:var(--muted);margin-bottom:9px}.buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.scorebtn{border:1px solid var(--border);background:#f8fafc;padding:9px 6px;border-radius:8px;cursor:pointer;font-size:12px}
+.scorebtn.selected{background:#dfeafb;border-color:var(--accent);color:#153e79;font-weight:700}
+.scorebox{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}.metric{border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center}
+.metric .big{font-size:26px;font-weight:800;margin-top:4px}.stage{font-size:24px;font-weight:800;padding:15px;border-radius:10px;text-align:center;margin:12px 0}
+.stage.initial{background:#fde8e7;color:var(--bad)}.stage.emerging{background:#fff2db;color:var(--warn)}.stage.proficient{background:#e4f4eb;color:var(--good)}
+button.action{background:var(--accent);color:white;border:none;border-radius:8px;padding:11px 15px;cursor:pointer;font-weight:700}
+button.secondary{background:white;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:11px 15px;cursor:pointer;font-weight:700}
+.interpretation{background:#f7f9fc;border-left:4px solid var(--accent);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+.helpwrap{margin-top:16px;border-top:1px solid var(--border);padding-top:12px}.helpbtn{width:24px;height:24px;border-radius:50%;border:1px solid var(--border);background:white;cursor:pointer;font-weight:800}
+.helpbox{display:none;margin-top:10px;background:#fbfcfe;border:1px solid var(--border);border-radius:8px;padding:12px;font-size:13px;line-height:1.5}
+.status{font-size:13px;margin-top:8px}.success{color:var(--good)}.warning{color:var(--warn)}.print-only{display:none}
+@media(max-width:850px){.grid{grid-template-columns:1fr}.buttons{grid-template-columns:1fr}.scorebox{grid-template-columns:1fr}}
+@media print{body{background:white}header{background:white;color:black;border-bottom:2px solid #222}header p{color:#444}main{max-width:none;margin:0;padding:12px}.no-print,video,input[type=file]{display:none!important}.card{box-shadow:none;break-inside:avoid}.print-only{display:block}}
+</style>
+</head>
+<body>
+<header>
+<h1>BSE219 — Fundamental Movement Skills Observation & Assessment</h1>
+<p>Observe → Rate process → Record product → Interpret → Save</p>
+</header>
+<main>
+<div class="grid">
+<section class="card">
+<h2>1. Observe the movement</h2>
+<p class="muted">Load the class video. Replay, pause, or slow the video as needed. Base your judgement on observable movement evidence.</p>
+<video id="video" controls></video>
+<div class="no-print"><label>Load a video from your computer</label><input type="file" id="videoFile" accept="video/*"></div>
+<label>Student / Assessor Name</label><input type="text" id="studentName" placeholder="Enter your name">
+<label>Observed performer / clip ID</label><input type="text" id="performer" placeholder="e.g., Performer A">
+<label>Rubric mode</label>
+<div class="row" style="margin:6px 0 10px">
+  <label style="font-weight:400;margin:0"><input type="radio" name="rubricMode" value="preset" checked> Use preset FMS rubric</label>
+  <label style="font-weight:400;margin:0"><input type="radio" name="rubricMode" value="custom"> Create my own rubric</label>
+</div>
+
+<div id="presetControls">
+  <label>Fundamental Movement Skill</label>
+  <select id="skill">
+    <option value="Skip">Locomotion — Skip</option>
+    <option value="Overarm Throw">Object Manipulation — Overarm Throw</option>
+    <option value="Static Balance">Balance — Static Balance</option>
+  </select>
+</div>
+
+<div id="customControls" style="display:none">
+  <label>Custom skill / activity name</label>
+  <input type="text" id="customSkillName" placeholder="e.g., Catching, Sprint Start, Dance Sequence">
+
+  <label>Custom process criteria</label>
+  <div id="customCriteriaInputs"></div>
+  <button type="button" class="secondary no-print" onclick="addCustomCriterion()">+ Add criterion</button>
+  <p class="muted">Enter observable criteria only. Example: “Keeps eyes focused on the object.”</p>
+</div>
+<h3>Observation notes</h3><textarea id="notes" placeholder="Record observable evidence that supports your scoring."></textarea>
+<h3>Product measure</h3>
+<p class="muted">Enter the number of successful outcomes from the total observed attempts. Define the success criterion before observing the clip.</p>
+<div class="row">
+<div style="flex:1;min-width:150px"><label>Successful attempts</label><input type="number" id="success" min="0" value="0"></div>
+<div style="flex:1;min-width:150px"><label>Total attempts</label><input type="number" id="attempts" min="1" value="5"></div>
+</div>
+</section>
+<section class="card">
+<h2>2. Process rubric</h2>
+<p class="muted">Rate each observable skill component: 0 = Not observed, 1 = Emerging/inconsistent, 2 = Observed consistently.</p>
+<div id="rubric"></div>
+</section>
+</div>
+
+<section class="card" style="margin-top:18px">
+<h2>3. Integrated result</h2>
+<div class="scorebox">
+<div class="metric"><div class="muted">Process score</div><div class="big" id="processPct">0%</div></div>
+<div class="metric"><div class="muted">Product score</div><div class="big" id="productPct">0%</div></div>
+<div class="metric"><div class="muted">Combined score</div><div class="big" id="combinedPct">0%</div></div>
+</div>
+<div id="stageBox" class="stage initial">INITIAL</div>
+<div class="interpretation" id="interpretation">Complete the process rubric and product measure to generate an interpretation.</div>
+<div class="row no-print" style="margin-top:16px">
+<button class="action" onclick="saveResponse()">Save this response</button>
+<button class="secondary" onclick="window.print()">Save / Print PDF</button>
+<button class="secondary" onclick="exportCSV()">Export saved responses (.csv)</button>
+<button class="secondary" onclick="resetForm()">Reset</button>
+</div>
+<div id="saveStatus" class="status no-print"></div>
+<div class="helpwrap">
+<button class="helpbtn no-print" onclick="toggleHelp()" aria-label="How the stage is calculated">?</button>
+<div class="helpbox" id="helpBox">
+<strong>How the classification is calculated</strong><br><br>
+Each process component is scored 0, 1 or 2. The process percentage is the total points achieved divided by the maximum possible points for that skill.<br><br>
+The product percentage is calculated as successful outcomes ÷ total attempts × 100.<br><br>
+The integrated score weights <strong>Process at 60%</strong> and <strong>Product at 40%</strong>:<br><br>
+<strong>Integrated score = (Process × 0.60) + (Product × 0.40)</strong><br><br>
+<strong>Initial:</strong> below 50%<br>
+<strong>Emerging:</strong> 50–74%<br>
+<strong>Proficient:</strong> 75% or above<br><br>
+This is a transparent rule-based judgement designed to support, not replace, professional observation.
+</div>
+</div>
+<div class="print-only"><p><strong>Generated assessment record</strong></p><p id="printMeta"></p></div>
+</section>
+</main>
+
+<script>
+const SUBMISSION_ENDPOINT = "";
+
+const skillRubrics = {
+"Skip":[
+"Shows a rhythmical step-hop.",
+"Lands on ball of the foot.",
+"Knee of support leg bends to prepare for hop.",
+"Head and trunk stable, eyes focused forward.",
+"Arms relaxed and swing in opposition to legs."
+],
+"Overarm Throw":[
+"Eyes focused on target area throughout the throw.",
+"Stands side-on to target area.",
+"Throwing arm moves in a downward and backward arc.",
+"Steps towards target area with foot opposite throwing arm.",
+"Hips then shoulders rotate forward.",
+"Throwing arm follows through, down and across the body."
+],
+"Static Balance":[
+"Support leg still, foot flat on the ground.",
+"Non-support leg bent, not touching the support leg.",
+"Head stable, eyes focused forward.",
+"Trunk stable and upright.",
+"No excessive arm movements."
+]
+};
+
+let scores=[]; const rubric=document.getElementById("rubric");
+
+function currentMode(){
+  return document.querySelector('input[name="rubricMode"]:checked').value;
+}
+
+function getCurrentSkillName(){
+  return currentMode()==="custom"
+    ? (document.getElementById("customSkillName").value.trim() || "Custom Skill")
+    : document.getElementById("skill").value;
+}
+
+function getCurrentCriteria(){
+  if(currentMode()==="custom"){
+    return [...document.querySelectorAll(".customCriterion")]
+      .map(i=>i.value.trim())
+      .filter(Boolean);
+  }
+  return skillRubrics[document.getElementById("skill").value];
+}
+
+function buildRubric(){
+ const criteria=getCurrentCriteria();
+ scores=Array(criteria.length).fill(null); rubric.innerHTML="";
+ criteria.forEach((text,i)=>{
+   const wrap=document.createElement("div"); wrap.className="criterion";
+   wrap.innerHTML=`<div class="criterion-title">${i+1}. ${text}</div>
+   <div class="criterion-desc">Select the descriptor that best matches the observed performance.</div>
+   <div class="buttons">
+   <button type="button" class="scorebtn" data-i="${i}" data-score="0"><strong>0</strong> — Not observed</button>
+   <button type="button" class="scorebtn" data-i="${i}" data-score="1"><strong>1</strong> — Emerging / inconsistent</button>
+   <button type="button" class="scorebtn" data-i="${i}" data-score="2"><strong>2</strong> — Observed consistently</button>
+   </div>`;
+   rubric.appendChild(wrap);
+ });
+ document.querySelectorAll(".scorebtn").forEach(btn=>btn.addEventListener("click",()=>{
+   const i=+btn.dataset.i,s=+btn.dataset.score;scores[i]=s;
+   document.querySelectorAll(`.scorebtn[data-i="${i}"]`).forEach(b=>b.classList.remove("selected"));
+   btn.classList.add("selected");calculate();
+ }));
+ calculate();
+}
+
+document.getElementById("skill").addEventListener("change",buildRubric);
+
+document.querySelectorAll('input[name="rubricMode"]').forEach(r=>{
+  r.addEventListener("change",()=>{
+    const custom=currentMode()==="custom";
+    document.getElementById("presetControls").style.display=custom?"none":"block";
+    document.getElementById("customControls").style.display=custom?"block":"none";
+    if(custom && document.querySelectorAll(".customCriterion").length===0){
+      addCustomCriterion("Criterion 1");
+      addCustomCriterion("Criterion 2");
+      addCustomCriterion("Criterion 3");
+    } else {
+      buildRubric();
+    }
+  });
+});
+
+document.getElementById("customSkillName").addEventListener("input",calculate);
+
+function addCustomCriterion(value=""){
+  const wrap=document.createElement("div");
+  wrap.className="row";
+  wrap.style.marginBottom="8px";
+  wrap.innerHTML=`
+    <input type="text" class="customCriterion" placeholder="Enter observable criterion" value="${value.replace(/"/g,'&quot;')}" style="flex:1">
+    <button type="button" class="secondary no-print" onclick="this.parentElement.remove(); buildRubric();">Remove</button>`;
+  document.getElementById("customCriteriaInputs").appendChild(wrap);
+  wrap.querySelector(".customCriterion").addEventListener("input",buildRubric);
+  buildRubric();
+}
+document.getElementById("videoFile").addEventListener("change",e=>{const file=e.target.files[0];if(file)document.getElementById("video").src=URL.createObjectURL(file);});
+["success","attempts","studentName","performer","notes"].forEach(id=>document.getElementById(id).addEventListener("input",calculate));
+
+function calculate(){
+ const maxProcess=scores.length*2, answered=scores.filter(x=>x!==null), rawProcess=answered.reduce((a,b)=>a+b,0);
+ const process=maxProcess?(rawProcess/maxProcess)*100:0;
+ let success=parseFloat(document.getElementById("success").value)||0;
+ let attempts=parseFloat(document.getElementById("attempts").value)||0;
+ if(success<0)success=0;if(attempts<1)attempts=1;if(success>attempts)success=attempts;
+ const product=(success/attempts)*100, complete=answered.length===scores.length, combined=(process*.60)+(product*.40);
+ document.getElementById("processPct").textContent=process.toFixed(0)+"%";
+ document.getElementById("productPct").textContent=product.toFixed(0)+"%";
+ document.getElementById("combinedPct").textContent=combined.toFixed(0)+"%";
+ let stage="INITIAL",cls="initial"; if(combined>=75){stage="PROFICIENT";cls="proficient"} else if(combined>=50){stage="EMERGING";cls="emerging"}
+ const box=document.getElementById("stageBox");box.textContent=stage;box.className="stage "+cls;
+ let text="";
+ if(!complete) text=`You have rated ${answered.length} of ${scores.length} process components. The current classification is provisional. Complete every process component before interpreting the result.`;
+ else if(stage==="INITIAL") text="The performer currently demonstrates an initial-stage profile. Several key movement components and/or the product outcome are not yet consistently demonstrated. Focus feedback on one or two observable skill components before reassessment.";
+ else if(stage==="EMERGING") text="The performer demonstrates an emerging-stage profile. Important movement components are present, but performance is not yet fully consistent across process and product. Targeted practice and repeated observation are recommended.";
+ else text="The performer demonstrates a proficient-stage profile. Most movement components are consistently observable and the task outcome is relatively successful. Consider increasing task complexity or variability while monitoring movement quality.";
+ const criteria=getCurrentCriteria();
+ const weakest=scores.map((s,i)=>({s,i})).filter(x=>x.s!==null).sort((a,b)=>a.s-b.s)[0];
+ if(complete&&weakest&&weakest.s<2) text+=` Feedback priority: ${criteria[weakest.i]}`;
+ document.getElementById("interpretation").textContent=text;
+ document.getElementById("printMeta").textContent=`Assessor: ${document.getElementById("studentName").value||"—"} | Performer: ${document.getElementById("performer").value||"—"} | Skill: ${getCurrentSkillName()} | Process: ${process.toFixed(0)}% | Product: ${product.toFixed(0)}% | Combined: ${combined.toFixed(0)}% | Stage: ${stage}`;
+ return {process,product,combined,stage,complete};
+}
+
+function getRecord(){
+ const calc=calculate(),skill=getCurrentSkillName(),criteria=getCurrentCriteria();
+ const record={timestamp:new Date().toISOString(),rubric_mode:currentMode(),assessor:document.getElementById("studentName").value.trim(),performer:document.getElementById("performer").value.trim(),skill,successful_attempts:Number(document.getElementById("success").value)||0,total_attempts:Number(document.getElementById("attempts").value)||0,process_score_pct:Number(calc.process.toFixed(1)),product_score_pct:Number(calc.product.toFixed(1)),combined_score_pct:Number(calc.combined.toFixed(1)),stage:calc.stage,notes:document.getElementById("notes").value.trim()};
+ criteria.forEach((c,i)=>{record[`process_${i+1}_component`]=c;record[`process_${i+1}_score`]=scores[i]===null?"":scores[i];});
+ return record;
+}
+
+async function saveResponse(){
+ const status=document.getElementById("saveStatus"),calc=calculate();
+ if(!document.getElementById("studentName").value.trim()){status.textContent="Please enter your name before saving.";status.className="status warning no-print";return;}
+ if(currentMode()==="custom" && getCurrentCriteria().length===0){status.textContent="Please add at least one custom rubric criterion.";status.className="status warning no-print";return;}
+ if(!calc.complete){status.textContent="Please complete every process rubric item before saving.";status.className="status warning no-print";return;}
+ const record=getRecord(),saved=JSON.parse(localStorage.getItem("bse219_fms_responses")||"[]");saved.push(record);localStorage.setItem("bse219_fms_responses",JSON.stringify(saved));
+ if(SUBMISSION_ENDPOINT){
+  try{await fetch(SUBMISSION_ENDPOINT,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(record)});
+  status.textContent=`Response saved locally and submitted to the class dataset. Local responses on this device: ${saved.length}.`;status.className="status success no-print";}
+  catch(err){status.textContent=`Saved locally, but the class submission could not be sent. Local responses on this device: ${saved.length}.`;status.className="status warning no-print";}
+ }else{status.textContent=`Response saved on this device. Saved responses here: ${saved.length}.`;status.className="status success no-print";}
+}
+
+function exportCSV(){
+ const rows=JSON.parse(localStorage.getItem("bse219_fms_responses")||"[]"),status=document.getElementById("saveStatus");
+ if(!rows.length){status.textContent="No saved responses are available on this device.";status.className="status warning no-print";return;}
+ const headers=[...new Set(rows.flatMap(r=>Object.keys(r)))];
+ const esc=v=>`"${(v??"").toString().replace(/"/g,'""')}"`;
+ const csv=[headers.map(esc).join(","),...rows.map(r=>headers.map(h=>esc(r[h])).join(","))].join("\n");
+ const blob=new Blob([csv],{type:"text/csv;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");
+ a.href=url;a.download="BSE219_FMS_responses.csv";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+}
+
+function toggleHelp(){const box=document.getElementById("helpBox");box.style.display=box.style.display==="block"?"none":"block";}
+function resetForm(){scores.fill(null);document.querySelectorAll(".scorebtn").forEach(b=>b.classList.remove("selected"));document.getElementById("success").value=0;document.getElementById("attempts").value=5;document.getElementById("notes").value="";document.getElementById("saveStatus").textContent="";calculate();}
+buildRubric();
+</script>
+</body>
+</html>
