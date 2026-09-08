@@ -97,7 +97,8 @@ button.secondary{background:white;color:var(--text);border:1px solid var(--borde
 <button class="action" onclick="saveResponse()">Save this response</button>
 <button class="secondary" onclick="window.print()">Save / Print PDF</button>
 <button class="secondary" onclick="exportCSV()">Export saved responses (.csv)</button>
-<button class="secondary" onclick="resetForm()">Reset</button>
+<button class="secondary" onclick="masterResetCSV()">Master Reset CSV Data</button>
+<button class="secondary" onclick="resetForm()">Reset current form</button>
 </div>
 <div id="saveStatus" class="status no-print"></div>
 <div class="helpwrap">
@@ -278,6 +279,24 @@ function exportCSV(){
 }
 
 function toggleHelp(){const box=document.getElementById("helpBox");box.style.display=box.style.display==="block"?"none":"block";}
+function masterResetCSV(){
+ const status=document.getElementById("saveStatus");
+ const count=JSON.parse(localStorage.getItem("bse219_fms_responses")||"[]").length;
+
+ if(count===0){
+   status.textContent="There are no saved CSV responses to clear.";
+   status.className="status warning no-print";
+   return;
+ }
+
+ const confirmed=confirm(`This will permanently delete ${count} saved response${count===1?"":"s"} from this browser. Continue?`);
+ if(!confirmed) return;
+
+ localStorage.removeItem("bse219_fms_responses");
+ status.textContent="Master reset complete. Saved response data has been cleared. The next CSV export will start fresh.";
+ status.className="status success no-print";
+}
+
 function resetForm(){scores.fill(null);document.querySelectorAll(".scorebtn").forEach(b=>b.classList.remove("selected"));document.getElementById("success").value=0;document.getElementById("attempts").value=5;document.getElementById("notes").value="";document.getElementById("saveStatus").textContent="";calculate();}
 buildRubric();
 </script>
